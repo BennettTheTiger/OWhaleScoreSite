@@ -1,0 +1,606 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet">
+    <!-- Firebase App is always required and must be first -->
+    <script src="https://www.gstatic.com/firebasejs/5.8.2/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.2/firebase-database.js"></script>
+    <!--p5.js for bubbles-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.js"></script>
+
+    <script>
+            // Initialize Firebase
+            var config = {
+              apiKey: "AIzaSyDFSvphN8aMn7gXn142165fAPua9AY5CmA",
+              authDomain: "whalescore-d7426.firebaseapp.com",
+              databaseURL: "https://whalescore-d7426.firebaseio.com",
+              projectId: "whalescore-d7426",
+              storageBucket: "whalescore-d7426.appspot.com",
+              messagingSenderId: "scoreBoard"
+            };
+            firebase.initializeApp(config);
+</script>
+
+<script> 
+    var scoreDbRef = firebase.database().ref('scores');
+    scoreDbRef.orderByChild("score").limitToLast(10).on("value", function(snapshot) {
+        console.dir(snapshot.val());
+        buildTable(reverseObject(snapshot.val()));//so top value is the highest
+        
+    });
+
+    //place in decending order since firebase only returns ascending order
+    function reverseObject(object) {
+        var dataOrdered = [];
+        var interations = Object.keys(object).length - 1;
+        for(key in object){
+            dataOrdered[interations] = object[key];
+            interations--;
+        }
+        //sort by score
+        dataOrdered.sort(function(a,b){
+            return a.score - b.score;
+        });
+
+        dataOrdered.reverse();//so high score is on top
+
+    return dataOrdered;
+    }
+
+    function buildTable(data){
+        let table = document.querySelector('.scoreTable');
+        var size = table.getElementsByTagName("tr").length; //this changes when a row is deleted so store in var
+        for(var e = size -1; e > 0; e--){
+            table.deleteRow(1);//always delete the first row index will shift on deletion
+        }
+
+        let teamCount = document.querySelector('.teamCount');
+        
+        teamCount.innerHTML = data.length + " teams";
+        let firstName = document.querySelector('.firstPlaceName');
+        let firstScore = document.querySelector('.firstPlacePoints');
+        firstName.innerHTML = data[0].teamName;
+        firstName.style.width = "0px";
+        firstName.style.overflow = "visible";
+        firstScore.innerHTML = data[0].score + " points";
+        for(var i = 1; i < 8; i++){
+            let row = table.insertRow(i);
+            row.className = "scoreboardRow" 
+           
+            let cell1 = row.insertCell(0);
+            cell1.className = "numRow";
+            cell1.innerHTML = "0" + (i+1)  + ".";
+            //cell1.style.padding = "0px 0px 50px 0px";
+            //cell1.style.fontSize = "30px";
+            //cell1.style.position = "relative";
+            //cell1.style.top = "6px";
+            let cell2 = row.insertCell(1);
+            cell2.className = "teamRow";
+            cell2.innerHTML = data[i].teamName;
+            //cell2.style.padding = "0px 480px 50px 45px";
+            //cell2.style.fontSize = "48px";
+            //cell2.style.textAlign = "Left";
+            let cell3 = row.insertCell(2);
+            cell3.className = "scoreRow";
+            cell3.innerHTML = data[i].score;
+            //cell3.style.padding = "0px 0px 50px 0px";
+            //cell3.style.fontSize = "48px";
+            //cell3.style.color = "#A8E0FF";
+            //table.appendChild(row);
+       } 
+    }
+
+    // Background objects
+
+    var bubbles = [];//holds bubble objects
+    var xVariation = 1;//how much the bubbles move in the x direction
+    var particle1; //Load the particle images
+    var particle2;
+    var particle3;
+    var particle4;
+    var particle5;
+    var particle6;
+    var particle7;
+    var bubble1; //Load the bubble im`ages
+    var bubble2;
+    var bubble3;
+    var bubble4;
+    var bubble5;
+    var bubble6;
+    var bubble7;
+    var bubble8;
+    var bubble9;
+    var bubble10;
+    var imageArray = []; //particle image files array
+    var bubbleImageArray = []; //bubble image files array
+    var particleNum = 45; //# of particles
+    var particles = []; //particle objects array
+    var lightRayNum = 5; //number of light ray
+    var lightRays = []; //light rays array
+    var offset;
+    //Background Gradient creation
+    function setBackgroundGradient(c1, c2) {
+    // noprotect
+    noFill();
+    for (var y = 0; y < window.innerHeight; y++) {
+        var inter = map(y, 0, window.innerHeight, 0, 1);
+        var c = lerpColor(c1, c2, inter);
+        stroke(c);
+        line(0, y, width, y);
+      }
+    }
+
+	  //load particle images
+    function preload(){
+        particle1 = loadImage("particles/Ellipse 2.60.png");
+        particle2 = loadImage("particles/Ellipse 2.60-1.png");
+        particle3 = loadImage("particles/Ellipse 2.60-2.png");
+        particle4 = loadImage("particles/Ellipse 2.60-3.png");
+        particle5 = loadImage("particles/Ellipse 2.60-4.png");
+        particle6 = loadImage("particles/Ellipse 2.60-5.png");
+        particle7 = loadImage("particles/Ellipse 2.60-6.png");
+        bubble1 = loadImage("bubbles/Ellipse 2.60-1.png");
+        bubble2 = loadImage("bubbles/Ellipse 2.60.png");
+        bubble3 = loadImage("bubbles/Ellipse 2.61.png");
+        bubble4 = loadImage("bubbles/Ellipse 2.62.png");
+        bubble5 = loadImage("bubbles/Ellipse 2.63.png");
+        bubble6 = loadImage("bubbles/Ellipse 2.64.png");
+        bubble7 = loadImage("bubbles/Ellipse 2.65.png");
+        bubble8 = loadImage("bubbles/Ellipse 2.66.png");
+        bubble9 = loadImage("bubbles/Ellipse 2.67.png");
+        bubble10 = loadImage("bubbles/Ellipse 2.68.png");
+        imageArray.push(particle1, particle2, particle3, particle4, particle5, particle6, particle7);
+        bubbleImageArray.push(bubble1, bubble2, bubble3, bubble4, bubble5, bubble6, bubble7, bubble8, bubble9, bubble10);
+    }
+    //setup the canvas based on the window size
+    function setup() {
+        createCanvas(window.innerWidth, window.innerHeight);
+        noStroke();
+        x = 50;
+        bubbles.push(makeBubble(0,400));
+        bubbles.push(makeBubble(1,90));
+        bubbles.push(makeBubble(2,58));
+        bubbles.push(makeBubble(3,142));
+        bubbles.push(makeBubble(4,208));
+        bubbles.push(makeBubble(5,92));
+        bubbles.push(makeBubble(6,136));
+        bubbles.push(makeBubble(7,48));
+        bubbles.push(makeBubble(8,390));
+        bubbles.push(makeBubble(9,202));
+        //make random dust particle objects
+        for (var j = 0; j < particleNum; j++) {
+            particles.push(makeParticle());
+        }
+        
+       //add light rays by hand :(
+            lightRays.push({
+                x1: 700,
+                x2: 1150,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 40,
+                opacity: random(30, 45) 
+                
+            });
+        lightRays.push({
+                x1: 750,
+                x2: 1200,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 18,
+                opacity: random(30, 45) 
+                
+            });
+        lightRays.push({
+                x1: 750,
+                x2: 1200,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 18,
+                opacity: random(30, 45) 
+                
+            });
+        
+        lightRays.push({
+                x1: 800,
+                x2: 1250,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 350,
+                opacity: random(30, 45) 
+                
+            });
+        
+        lightRays.push({
+                x1: 850,
+                x2: 1300,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 300,
+                opacity: random(30, 45) 
+                
+            });
+        
+        lightRays.push({
+                x1: 1200,
+                x2: 1650,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 70,
+                opacity: random(30, 45) 
+                
+            });
+                
+         lightRays.push({
+                x1: 1250,
+                x2: 1700,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 70,
+                opacity: random(30, 45) 
+                
+            });
+        
+        lightRays.push({
+                x1: 1400,
+                x2: 1850,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 10,
+                opacity: random(30, 45) 
+                
+            });
+        
+        
+        lightRays.push({
+                x1: 1450,
+                x2: 1900,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 50,
+                opacity: random(30, 45) 
+                
+            });
+        
+        
+        lightRays.push({
+                x1: 1600,
+                x2: 2050,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 125,
+                opacity: random(30, 45) 
+                
+            });
+        
+         lightRays.push({
+                x1: 1700,
+                x2: 2150,
+                y1: 0,
+                y2: window.innerHeight,
+                width: 150,
+                opacity: random(30, 45) 
+                
+            });
+  
+        }//end Clusters
+    //Make particles
+    function makeParticle() {
+      var particle = {
+        x: Math.round(Math.random() * window.innerWidth),
+        y: Math.round(Math.random() * window.innerHeight),
+        o: 127,
+        xAngle : Math.floor(Math.random() * 10) - 5,
+        yAngle : Math.floor(Math.random() * 10) - 5,
+        image: Math.floor(Math.random() * 7) + 1
+        };
+      return particle;
+    }
+    //Make bubbles
+    function makeBubble(bubbleImg, size) {
+        
+      var bubble = {
+        x: Math.round(Math.random() * window.innerWidth),
+        y: Math.round(Math.random() * window.innerHeight),
+        speed: 10,
+        size: size,
+        opacity: 160,
+        xAngle: Math.floor(Math.random() * 10),
+        imgKey: bubbleImg
+        };
+        return bubble
+    }
+    //handle window resize events and fix the canvas
+    function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    }
+    //animation loop
+    function draw() {
+    setBackgroundGradient(color(0, 240, 255), color(38, 0, 189));
+        lightRays.forEach(function(l){
+        blendMode(OVERLAY);
+        //stroke(color(0, 240, 255, l.opacity));
+        //strokeWeight(l.strokeWeight);
+        //line(l.x1, l.y1, l.x2, l.y2);
+            fill(color(0, 240, 255, l.opacity));
+            noStroke();
+        beginShape();
+            vertex(l.x1, l.y1);
+            vertex(l.x2, l.y2);
+            vertex(l.x2 + l.width, l.y2);
+            vertex(l.x1 + l.width, l.y1);
+        endShape();
+    });
+    blendMode(BLEND);
+    particles.forEach(function(p){ //Particle movement
+        p.x = p.x + 0.5 * cos(radians(p.xAngle));
+        p.y = p.y + 0.5 * cos(radians(p.yAngle));
+        p.xAngle += Math.floor(Math.random() * 6) - 3;
+        p.yAngle += Math.floor(Math.random() * 6) - 3;
+        p.o += Math.floor(Math.random() * 50) - 25;
+        image(imageArray[p.image-1], p.x, p.y);
+        tint(255, p.o);
+        if(p.x <= -7) p.x = window.innerWidth;
+        if(p.y <= -7) p.y = window.innerHeight;
+        if(p.x > window.innerWidth + 5) p.x = 0;
+        if(p.y > window.innerHeight + 5) p.y = 0;
+        if(p.o <= 0) p.o = 127;
+    });
+        tint(255, 255);
+    bubbles.forEach(function(bub, index) { //Bubble movement
+        blendMode(SCREEN);
+        moveBubbles(bub);
+        if (bub.y <= -bub.size){
+            bub.y = window.innerHeight + bub.size;
+            bub.speed = 1.5;
+            bub.x = Math.round(Math.random() * window.innerWidth);
+            bub.opacity = Math.floor(Math.random() * 127.5) + 255;
+        };
+    });
+        blendMode(BLEND);
+    }
+
+    //move the bubbles based on their size
+    function moveBubbles(bubble) {
+    //bubble.x += random(-xVariation, xVariation);
+	bubble.x = bubble.x + xVariation * cos(radians(bubble.xAngle));
+	bubble.xAngle += 3;
+    bubble.speed += 1/ (Math.round(bubble.size/6));
+    bubble.y -= bubble.speed;
+    tint(255, bubble.opacity);
+    image(bubbleImageArray[bubble.imgKey], bubble.x, bubble.y);
+    }
+
+
+</script>
+    <title>Score Board</title>
+</head>
+<body>
+    <div class="row">
+    <div class="left">
+        <div class="topScore">
+            <div class="title">
+                <p class="titleText">Scoreboard</p>
+            </div>
+            <div class="firstPlaceNum">
+                <p>01.</p>
+            </div>
+            <div class="firstPlaceName">
+                <p class="nameText">Three Word Name</p>
+            </div>
+            <div class="firstPlacePoints">
+                <p>123</p>
+            </div>
+            <hr class="pointsLine">
+            <div class="teamCount">
+                <p>Teams</p>
+            </div>
+        </div>
+    </div>
+    <div class="right">
+            <table class="scoreTable">
+                    <tr class="tableHeading">
+                      <th class="rank headPadding">#</th>
+                      <th class="teamName headPadding">Team Name</th>
+                      <th class="points headPadding">Points</th> 
+                    </tr>
+                <div id="tableRow">
+                    <tr>
+                      <td>Ohh No</td>
+                      <td>Theres No</td> 
+                      <td>Data</td>
+                    </tr>
+                </div>
+        </table> 
+    </div>
+    </div>
+    <style>
+                /*    FONT AND GENERAL OVERRIDES    */
+        p{
+            margin: 0;
+        }
+        @font-face{
+            font-family: Circular;
+            src: url(CircularStd-Medium.otf);
+        }
+        @font-face{
+            font-family: Circular Bold;
+            src: url(CircularStd-Bold.otf);
+        }
+        body{
+            color: #FFFFFF;
+            font-family: 'Circular', sans-serif;
+            margin: 0px;
+            padding: 0px;
+        }
+        canvas{
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            z-index: -5;
+        }
+        /*    PAGE DIVS    */
+        .row{
+            display: flex;
+            flex-direction: row;
+        }
+        .left{
+            width: 50%;
+            display: flex;
+            align-items: center;
+        }
+        .right{
+            margin-right: 5%;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        /*    TABLE CSS    */
+        /*    TABLE HEADER    */
+        .tableHeading{
+            font-weight: normal;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-align: left;
+            border-collapse:separate; 
+            border-spacing: 0 1em;
+        }
+        .headPadding{
+            padding-bottom: 80px;
+        }
+        .rank{
+/*            padding: 0px 0px 80px 0px;*/
+        }
+        .rank:after{ /* Underline */
+            content: "";
+            display: block;
+/*            margin: 0 auto;*/
+            width: 18%;
+            padding-top: 5px;
+            border-bottom: 3px solid white;
+        }
+        .teamName{
+/*            padding: 0px 480px 80px 45px;*/
+/*            margin-left: 80px;*/
+/*            text-align: left;*/
+        }
+        .teamName:after{ /* Underline */
+            content: "";
+            display: block;
+            width: 27%;
+            padding-top: 1%;
+            border-bottom: 3px solid white;
+        }
+        .points{
+/*            padding: 0px 0px 80px 0px;*/
+        }
+        .points:after{ /* Underline */
+            content: "";
+            display: block;
+/*            margin: 0 auto;*/
+            width: 30%;
+            padding-top: 1%;
+            border-bottom: 3px solid white;
+        }
+        /*    TABLE ITSELF    */
+        table{
+/*            text-align: center;*/
+            z-index: 5;
+            position: relative;
+            width: 100%
+        }
+        .scoreboardRow {
+            font-size: 48px;
+        }
+        .numRow{
+            font-size: 30px;
+            position: relative;
+            padding-bottom: 50px;
+            top: 7px;
+        }
+        .teamRow{
+            text-align: left;
+            padding-bottom: 50px;
+            width: 60%;
+        }
+        .scoreRow{
+            padding-bottom: 50px;
+            color: #A8E0FF;
+            letter-spacing: 2px;
+        }
+        /*    LEFT DIV CONTENTS    */
+        .topScore{
+            margin-left: 18%;
+            margin-bottom: 50px;
+        }
+        .title{
+            position: relative;
+            text-align: center;
+            z-index: 5;
+            font-family: 'Circular', sans-serif;
+            font-size: 24px;
+            color: #09B4E7;
+            border-radius: 50px;
+            background: #FFFFFF;
+            width: 170px;
+            height: 55px;
+            bottom: 105px;
+            right: 10%;
+        }
+        .titleText{
+            padding-top: 7%;
+        }
+        .firstPlaceNum{
+            position: relative;
+            z-index: 5;
+            font-family: 'Circular Bold', sans-serif;
+            color: #FFD600;
+            font-size: 72px;
+            bottom: 45px;
+        }
+        .firstPlaceName{
+            position: relative;
+            z-index: 5;
+            font-family: 'Circular Bold', sans-serif;
+            color: #FFD600;
+            font-size: 120px;
+            bottom: 30px;
+            line-height: 105%;
+        }
+        .firstPlacePoints{
+            position: relative;
+            z-index: 5;
+            font-family: 'Circular Bold', sans-serif;
+            font-size: 40px;
+            bottom: 5px;
+            left: 5%;
+        }
+        .pointsLine{
+            position: relative;
+            z-index: 5;
+            color: #FFFFFF;
+            background-color: #FFFFFF;
+            bottom: 38px;
+            left: 80%;
+            width: 78px;
+            border: none;
+            height: 5px;
+        }
+        .teamCount{
+            position: relative;
+            font-size: 24px;
+            color: #A8E0FF;
+            z-index: 5;
+            top: 115px;
+            left: 5%;
+        }
+        
+        
+    </style>
+</body>
+</html>

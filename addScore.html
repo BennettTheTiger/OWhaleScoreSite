@@ -1,0 +1,31 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <input id="name" type="text" placeholder="Bennett">
+    <input id="score" type="number" placeholder="22" min="0">
+    <button id="addScore">Add Score</button>
+
+
+</body>
+
+<script>
+    document.querySelector('#addScore').addEventListener('click',function(){
+        var name = document.querySelector('#name').textContent;
+        var age = document.querySelector('#score').value;
+        console.log(name,score); 
+        //Make Post Request
+        var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/addTeam", true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.onreadystatechange = function(){
+                console.log(xhr.status);
+            };
+            xhr.send(JSON.stringify({teamName: teamName}));
+    });
+</script>
+</html>
