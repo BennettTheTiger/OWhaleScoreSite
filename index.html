@@ -25,12 +25,21 @@
 </script>
 
 <script> 
+	var totalScores = 0;
     var scoreDbRef = firebase.database().ref('scores');
     scoreDbRef.orderByChild("score").limitToLast(10).on("value", function(snapshot) {
         console.dir(snapshot.val());
         buildTable(reverseObject(snapshot.val()));//so top value is the highest
         
     });
+	
+	scoreDbRef.orderByChild("score").on("value", function(data){
+		totalScores = Object.keys(data.val()).length;
+		let teamCount = document.querySelector('.teamCount');
+		teamCount.innerHTML = totalScores + " teams";
+
+		console.dir(Object.keys(data.val()).length);
+	});
 
     //place in decending order since firebase only returns ascending order
     function reverseObject(object) {
@@ -58,8 +67,8 @@
         }
 
         let teamCount = document.querySelector('.teamCount');
-        
-        teamCount.innerHTML = data.length + " teams";
+       
+	
         let firstName = document.querySelector('.firstPlaceName');
         let firstScore = document.querySelector('.firstPlacePoints');
         firstName.innerHTML = data[0].teamName;
